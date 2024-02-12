@@ -1,85 +1,66 @@
 import 'package:flutter/material.dart';
-import 'package:nu_go_app/features/authentication/controllers/auth_page.dart';
-import 'package:nu_go_app/features/authentication/screens/login.dart';
-import 'package:nu_go_app/features/authentication/screens/onboarding.dart';
-import 'package:nu_go_app/features/home/profile.dart';
-import 'package:nu_go_app/utils/theme/theme.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
+import 'flutter_flow/flutter_flow_util.dart';
+import 'flutter_flow/nav/nav.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  usePathUrlStrategy();
+
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.light,
-      theme: NUGoTheme.lightTheme,
-      darkTheme: NUGoTheme.darkTheme,
-      // home: const AuthPage(),
-      home: const ProfilePage(),
-    );
-  }
+  State<MyApp> createState() => _MyAppState();
+
+  static _MyAppState of(BuildContext context) =>
+      context.findAncestorStateOfType<_MyAppState>()!;
 }
 
-class SplashPage extends StatefulWidget {
-  const SplashPage({super.key});
+class _MyAppState extends State<MyApp> {
+  ThemeMode _themeMode = ThemeMode.system;
 
-  @override
-  State<SplashPage> createState() => _SplashPageState();
-}
+  late AppStateNotifier _appStateNotifier;
+  late GoRouter _router;
 
-class _SplashPageState extends State<SplashPage> {
+  bool displaySplashImage = true;
+
   @override
   void initState() {
     super.initState();
-    _navigateToHome();
+
+    _appStateNotifier = AppStateNotifier.instance;
+    _router = createRouter(_appStateNotifier);
+
+    Future.delayed(const Duration(milliseconds: 1000),
+        () => setState(() => _appStateNotifier.stopShowingSplashImage()));
   }
 
-  Future<void> _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const Onboarding()));
-    });
-  }
+  void setThemeMode(ThemeMode mode) => setState(() {
+        _themeMode = mode;
+      });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xff35408E),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('assets/icons/landing_logo.png', height: 100),
-            const SizedBox(height: 15),
-            const Text(
-              'The Nationalian Corner',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 20,
-                  fontFamily: 'ClanPro'),
-            ),
-          ],
-        ),
+    return MaterialApp.router(
+      title: 'NU Go',
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('en', '')],
+      theme: ThemeData(
+        brightness: Brightness.light,
       ),
-      bottomNavigationBar: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset('assets/icons/synergy.png', height: 30),
-          const SizedBox(height: 100),
-        ],
-      ),
+      themeMode: _themeMode,
+      routerConfig: _router,
     );
   }
 }
